@@ -63,7 +63,26 @@ public class WordNet {
 
     // distance between nounA and nounB (defined below)
     public int distance(String nounA, String nounB) {
-
+        if (!isNoun(nounA) || !isNoun(nounB)) {
+            throw new IllegalArgumentException("One or both words are not nouns");
+        }
+        // Find the synset IDs for nounA and nounB
+        int idA = -1;
+        int idB = -1;
+        for (int i = 0; i < synsetsList.size(); i++) {
+            String[] synset = synsetsList.get(i);
+            for (String word : synset) {
+                if (word.equals(nounA)) {
+                    idA = i;
+                }
+                if (word.equals(nounB)) {
+                    idB = i;
+                }
+            }
+        }
+        // Use SAP to find the distance
+        SAP sap = new SAP(d);
+        return sap.length(idA, idB);
     }
 
     // a synset (second field of synsets.txt) that is the common ancestor of nounA and nounB

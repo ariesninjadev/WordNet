@@ -32,17 +32,52 @@ public class SAP {
 
     // a common ancestor of v and w that participates in a shortest ancestral path; -1 if no such path
     public int ancestor(int v, int w) {
-
+        if (v < 0 || v >= V || w < 0 || w >= V) {
+            throw new IllegalArgumentException("Vertex out of bounds");
+        }
+        if (v == w) {
+            return v; // same vertex
+        }
+        return -1; // placeholder
     }
 
-    // length of shortest ancestral path between any vertex in v and any vertex in w; -1 if no such path
     public int length(Iterable<Integer> v, Iterable<Integer> w) {
-
+        if (v == null || w == null) {
+            throw new IllegalArgumentException("Iterable cannot be null");
+        }
+        for (int vertex : v) {
+            if (vertex < 0 || vertex >= V) {
+                throw new IllegalArgumentException("Vertex out of bounds");
+            }
+        }
+        for (int vertex : w) {
+            if (vertex < 0 || vertex >= V) {
+                throw new IllegalArgumentException("Vertex out of bounds");
+            }
+        }
+        // Implement BFS or DFS to find the shortest ancestral path
+        // Return -1 if no such path exists
+        return -1; // placeholder
     }
 
     // a common ancestor that participates in shortest ancestral path; -1 if no such path
     public int ancestor(Iterable<Integer> v, Iterable<Integer> w) {
-
+        if (v == null || w == null) {
+            throw new IllegalArgumentException("Iterable cannot be null");
+        }
+        for (int vertex : v) {
+            if (vertex < 0 || vertex >= V) {
+                throw new IllegalArgumentException("Vertex out of bounds");
+            }
+        }
+        for (int vertex : w) {
+            if (vertex < 0 || vertex >= V) {
+                throw new IllegalArgumentException("Vertex out of bounds");
+            }
+        }
+        // Implement BFS or DFS to find the shortest ancestral path
+        // Return -1 if no such path exists
+        return -1; // placeholder
     }
 
     // do unit testing of this class
