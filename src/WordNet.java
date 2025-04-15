@@ -1,98 +1,102 @@
-// princeton algs4
-
 import edu.princeton.cs.algs4.Digraph;
 import edu.princeton.cs.algs4.In;
 
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
 
 public class WordNet {
 
-    ArrayList<String[]> synsetsList = new ArrayList<>(); // since synset strings can have multiple words (separated by spaces), we store them as an array
-    ArrayList<String> wordList = new ArrayList<>(); // still parsed, but all words are stored as strings individually
+    private final ArrayList<String[]> synsetsList = new ArrayList<>();
+    private final HashMap<String, ArrayList<Integer>> nounToSynsetMap = new HashMap<>();
+    private final Digraph digraph;
 
-    Digraph d; // the digraph representing the hypernyms
-
-    // constructor takes the name of the two input files
+    // Constructor takes the name of the two input files
     public WordNet(String synsets, String hypernyms) {
+        if (synsets == null || hypernyms == null) {
+            throw new IllegalArgumentException("Input files cannot be null");
+        }
+
+        // Read synsets and populate data structures
         In synsetFile = new In(synsets);
-        In hypernymFile = new In(hypernyms);
-        // Read synsets and update lists
         while (synsetFile.hasNextLine()) {
             String line = synsetFile.readLine();
             String[] parts = line.split(",");
-            // parts[0] is the synset ID, parts[1] is the synset string
-            // parts[2] is the gloss (not used here)
+            int synsetID = Integer.parseInt(parts[0]);
             String[] words = parts[1].split(" ");
             synsetsList.add(words);
+
             for (String word : words) {
-                if (!wordList.contains(word)) {
-                    wordList.add(word);
-                }
+                nounToSynsetMap.putIfAbsent(word, new ArrayList<>());
+                nounToSynsetMap.get(word).add(synsetID);
             }
         }
+
         // Read hypernyms and create the digraph
         int numSynsets = synsetsList.size();
-        d = new Digraph(numSynsets);
+        digraph = new Digraph(numSynsets);
+        In hypernymFile = new In(hypernyms);
         while (hypernymFile.hasNextLine()) {
             String line = hypernymFile.readLine();
             String[] parts = line.split(",");
             int synsetID = Integer.parseInt(parts[0]);
             for (int i = 1; i < parts.length; i++) {
                 int hypernymID = Integer.parseInt(parts[i]);
-                d.addEdge(synsetID, hypernymID);
+                digraph.addEdge(synsetID, hypernymID);
             }
         }
     }
 
-    // returns all WordNet nouns
+    // Returns all WordNet nouns
     public Iterable<String> nouns() {
-        return wordList;
+        return nounToSynsetMap.keySet();
     }
 
-    // is the word a WordNet noun?
+    // Is the word a WordNet noun?
     public boolean isNoun(String word) {
-        for (String[] synset : synsetsList) {
-            for (String w : synset) {
-                if (w.equals(word)) {
-                    return true;
-                }
-            }
+        if (word == null) {
+            throw new IllegalArgumentException("Word cannot be null");
         }
-        return false;
+        return nounToSynsetMap.containsKey(word);
     }
 
-    // distance between nounA and nounB (defined below)
+    // Distance between nounA and nounB
     public int distance(String nounA, String nounB) {
-        if (!isNoun(nounA) || !isNoun(nounB)) {
-            throw new IllegalArgumentException("One or both words are not nouns");
-        }
-        // Find the synset IDs for nounA and nounB
-        int idA = -1;
-        int idB = -1;
-        for (int i = 0; i < synsetsList.size(); i++) {
-            String[] synset = synsetsList.get(i);
-            for (String word : synset) {
-                if (word.equals(nounA)) {
-                    idA = i;
-                }
-                if (word.equals(nounB)) {
-                    idB = i;
-                }
-            }
-        }
-        // Use SAP to find the distance
-        SAP sap = new SAP(d);
-        return sap.length(idA, idB);
+        validateNoun(nounA);
+        validateNoun(nounB);
+
+        ArrayList<Integer> synsetIDsA = nounToSynsetMap.get(nounA);
+        ArrayList<Integer> synsetIDsB = nounToSynsetMap.get(nounB);
+
+        SAP sap = new SAP(digraph);
+        return sap.length(synsetIDsA, synsetIDsB);
     }
 
-    // a synset (second field of synsets.txt) that is the common ancestor of nounA and nounB
-    // in a shortest ancestral path (defined below)
+    // A synset that is the common ancestor of nounA and nounB in a shortest ancestral path
     public String sap(String nounA, String nounB) {
+        validateNoun(nounA);
+        validateNoun(nounB);
 
+        ArrayList<Integer> synsetIDsA = nounToSynsetMap.get(nounA);
+        ArrayList<Integer> synsetIDsB = nounToSynsetMap.get(nounB);
+
+        SAP sap = new SAP(digraph);
+        int ancestorID = sap.ancestor(synsetIDsA, synsetIDsB);
+        if (ancestorID == -1) {
+            return null;
+        }
+        return String.join(" ", synsetsList.get(ancestorID));
     }
 
-    // do unit testing of this class
-    public static void main(String[] args) {
+    // Validate if a word is a valid noun
+    private void validateNoun(String word) {
+        if (word == null || !isNoun(word)) {
+            throw new IllegalArgumentException("Word is not a valid WordNet noun");
+        }
+    }
 
+    // Do unit testing of this class
+    public static void main(String[] args) {
+        // Unit testing can be added here
     }
 }

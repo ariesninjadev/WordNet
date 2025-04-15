@@ -1,87 +1,114 @@
 import edu.princeton.cs.algs4.Digraph;
+import edu.princeton.cs.algs4.Queue;
+import edu.princeton.cs.algs4.BreadthFirstDirectedPaths;
 
 public class SAP {
 
-    private final Digraph G; // the digraph representing the hypernyms
-    private final int V; // number of vertices in the digraph
-    private final int E; // number of edges in the digraph
+    private final Digraph G;
 
-    // constructor takes a digraph (not necessarily a DAG)
+    // Constructor takes a digraph (not necessarily a DAG)
     public SAP(Digraph G) {
         if (G == null) {
             throw new IllegalArgumentException("Graph cannot be null");
         }
-        this.G = new Digraph(G); // create a copy of the graph to avoid modifying the original
-        this.V = G.V();
-        this.E = G.E();
-
+        this.G = new Digraph(G); // Create a copy of the graph to avoid modifying the original
     }
 
-    // length of shortest ancestral path between v and w; -1 if no such path
+    // Length of shortest ancestral path between v and w; -1 if no such path
     public int length(int v, int w) {
-        if (v < 0 || v >= V || w < 0 || w >= V) {
-            throw new IllegalArgumentException("Vertex out of bounds");
-        }
-        if (v == w) {
-            return 0; // same vertex
-        }
-        // Implement BFS or DFS to find the shortest ancestral path
-        // Return -1 if no such path exists
-        return -1; // placeholder
+        validateVertex(v);
+        validateVertex(w);
+        return bfs(v, w)[0]; // Return the length
     }
 
-    // a common ancestor of v and w that participates in a shortest ancestral path; -1 if no such path
+    // A common ancestor of v and w that participates in a shortest ancestral path; -1 if no such path
     public int ancestor(int v, int w) {
-        if (v < 0 || v >= V || w < 0 || w >= V) {
+        validateVertex(v);
+        validateVertex(w);
+        return bfs(v, w)[1]; // Return the ancestor
+    }
+
+    // Length of shortest ancestral path between any vertex in v and any vertex in w; -1 if no such path
+    public int length(Iterable<Integer> v, Iterable<Integer> w) {
+        validateVertices(v);
+        validateVertices(w);
+        return bfs(v, w)[0]; // Return the length
+    }
+
+    // A common ancestor that participates in shortest ancestral path; -1 if no such path
+    public int ancestor(Iterable<Integer> v, Iterable<Integer> w) {
+        validateVertices(v);
+        validateVertices(w);
+        return bfs(v, w)[1]; // Return the ancestor
+    }
+
+    // Helper method to perform BFS and find shortest ancestral path
+    private int[] bfs(int v, int w) {
+        BreadthFirstDirectedPaths bfsV = new BreadthFirstDirectedPaths(G, v);
+        BreadthFirstDirectedPaths bfsW = new BreadthFirstDirectedPaths(G, w);
+
+        int minDistance = Integer.MAX_VALUE;
+        int ancestor = -1;
+
+        for (int i = 0; i < G.V(); i++) {
+            if (bfsV.hasPathTo(i) && bfsW.hasPathTo(i)) {
+                int distance = bfsV.distTo(i) + bfsW.distTo(i);
+                if (distance < minDistance) {
+                    minDistance = distance;
+                    ancestor = i;
+                }
+            }
+        }
+
+        if (minDistance == Integer.MAX_VALUE) {
+            return new int[]{-1, -1}; // No path found
+        }
+        return new int[]{minDistance, ancestor};
+    }
+
+    // Overloaded helper method for BFS with iterables
+    private int[] bfs(Iterable<Integer> v, Iterable<Integer> w) {
+        BreadthFirstDirectedPaths bfsV = new BreadthFirstDirectedPaths(G, v);
+        BreadthFirstDirectedPaths bfsW = new BreadthFirstDirectedPaths(G, w);
+
+        int minDistance = Integer.MAX_VALUE;
+        int ancestor = -1;
+
+        for (int i = 0; i < G.V(); i++) {
+            if (bfsV.hasPathTo(i) && bfsW.hasPathTo(i)) {
+                int distance = bfsV.distTo(i) + bfsW.distTo(i);
+                if (distance < minDistance) {
+                    minDistance = distance;
+                    ancestor = i;
+                }
+            }
+        }
+
+        if (minDistance == Integer.MAX_VALUE) {
+            return new int[]{-1, -1}; // No path found
+        }
+        return new int[]{minDistance, ancestor};
+    }
+
+    // Validate a single vertex
+    private void validateVertex(int v) {
+        if (v < 0 || v >= G.V()) {
             throw new IllegalArgumentException("Vertex out of bounds");
         }
-        if (v == w) {
-            return v; // same vertex
-        }
-        return -1; // placeholder
     }
 
-    public int length(Iterable<Integer> v, Iterable<Integer> w) {
-        if (v == null || w == null) {
+    // Validate a collection of vertices
+    private void validateVertices(Iterable<Integer> vertices) {
+        if (vertices == null) {
             throw new IllegalArgumentException("Iterable cannot be null");
         }
-        for (int vertex : v) {
-            if (vertex < 0 || vertex >= V) {
-                throw new IllegalArgumentException("Vertex out of bounds");
-            }
+        for (int v : vertices) {
+            validateVertex(v);
         }
-        for (int vertex : w) {
-            if (vertex < 0 || vertex >= V) {
-                throw new IllegalArgumentException("Vertex out of bounds");
-            }
-        }
-        // Implement BFS or DFS to find the shortest ancestral path
-        // Return -1 if no such path exists
-        return -1; // placeholder
     }
 
-    // a common ancestor that participates in shortest ancestral path; -1 if no such path
-    public int ancestor(Iterable<Integer> v, Iterable<Integer> w) {
-        if (v == null || w == null) {
-            throw new IllegalArgumentException("Iterable cannot be null");
-        }
-        for (int vertex : v) {
-            if (vertex < 0 || vertex >= V) {
-                throw new IllegalArgumentException("Vertex out of bounds");
-            }
-        }
-        for (int vertex : w) {
-            if (vertex < 0 || vertex >= V) {
-                throw new IllegalArgumentException("Vertex out of bounds");
-            }
-        }
-        // Implement BFS or DFS to find the shortest ancestral path
-        // Return -1 if no such path exists
-        return -1; // placeholder
-    }
-
-    // do unit testing of this class
+    // Do unit testing of this class
     public static void main(String[] args) {
-
+        // Unit testing can be added here
     }
 }
